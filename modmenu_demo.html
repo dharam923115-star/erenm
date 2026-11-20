@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cyber Mod Menu (UI Demo)</title>
+<style>
+:root{--bg:#07070a;--panel:rgba(12,12,16,.82);--red:#ff1744;--cyan:#00e5ff;--txt:#e8f7ff;--mut:#7d8a93;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#07070a}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{background:radial-gradient(circle at 30% 20%,#1a0a12,var(--bg) 60%);color:var(--txt);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow:hidden}
+canvas{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
+#hud{position:fixed;top:calc(env(safe-area-inset-top,0px) + 6px);left:50%;transform:translateX(-50%);z-index:5;font:12px monospace;color:var(--cyan);background:rgba(0,0,0,.6);border:1px solid var(--cyan);padding:3px 10px;border-radius:8px;display:none;text-shadow:0 0 6px var(--cyan)}
+#login{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;background:var(--bg);padding:20px}
+.card{width:100%;max-width:340px;background:var(--panel);border:1px solid var(--red);border-radius:16px;padding:22px;box-shadow:0 0 24px rgba(255,23,68,.35)}
+h1{margin:0 0 4px;font-size:20px;letter-spacing:2px;color:var(--red);text-shadow:0 0 10px var(--red)}
+.sub{font-size:11px;color:var(--mut);margin-bottom:16px}
+input[type=text]{width:100%;padding:12px;background:#000;border:1px solid var(--cyan);border-radius:10px;color:var(--cyan);font:14px monospace;outline:none;margin-bottom:10px}
+.btn{width:100%;padding:12px;border-radius:10px;border:1px solid var(--cyan);background:transparent;color:var(--cyan);font-weight:700;letter-spacing:1px;margin-bottom:8px;box-shadow:0 0 10px rgba(0,229,255,.3)}
+.btn.red{border-color:var(--red);color:var(--red);box-shadow:0 0 10px rgba(255,23,68,.4)}
+.btn:active{background:rgba(0,229,255,.15)}
+#msg{font-size:12px;min-height:16px;text-align:center}
+#bubble{position:fixed;left:16px;top:120px;width:54px;height:54px;border-radius:50%;z-index:15;display:none;align-items:center;justify-content:center;background:radial-gradient(circle,#2a0a14,#000);border:2px solid var(--red);color:var(--cyan);font-weight:800;box-shadow:0 0 16px var(--red);touch-action:none;user-select:none}
+#menu{position:fixed;z-index:14;left:50%;top:50%;transform:translate(-50%,-50%);width:min(92vw,360px);max-height:84%;overflow:auto;display:none;background:var(--panel);border:1px solid var(--cyan);border-radius:16px;padding:14px;box-shadow:0 0 22px rgba(0,229,255,.35),inset 0 0 18px rgba(255,23,68,.12)}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.top b{color:var(--red);letter-spacing:2px;text-shadow:0 0 8px var(--red)}
+.top small{color:var(--mut);font-size:10px}
+.row{display:flex;justify-content:space-between;align-items:center;padding:9px 2px;border-bottom:1px solid rgba(255,255,255,.07);font-size:14px}
+.sw{position:relative;width:46px;height:24px;flex:none}
+.sw input{opacity:0;width:100%;height:100%;margin:0;position:absolute;z-index:2}
+.sw i{position:absolute;inset:0;background:#222;border:1px solid var(--mut);border-radius:20px;transition:.2s}
+.sw i:after{content:"";position:absolute;left:2px;top:2px;width:18px;height:18px;border-radius:50%;background:var(--mut);transition:.2s}
+.sw input:checked+i{border-color:var(--cyan);box-shadow:0 0 10px var(--cyan)}
+.sw input:checked+i:after{left:24px;background:var(--cyan)}
+.sl{padding:9px 2px;font-size:13px}
+.sl span{color:var(--cyan);float:right;font-family:monospace}
+input[type=range]{width:100%;accent-color:var(--red)}
+#con{height:130px;overflow:auto;background:#000;border:1px solid var(--red);border-radius:10px;padding:8px;font:11px/1.5 monospace;color:#4dff9a;margin:10px 0}
+#con .e{color:var(--red)}#con .c{color:var(--cyan)}
+.note{font-size:10px;color:var(--mut);text-align:center}
+.cmd{display:flex;gap:6px;margin:-4px 0 10px}
+.cmd input{flex:1;min-width:0;padding:10px;background:#000;border:1px solid var(--cyan);border-radius:10px;color:#4dff9a;font:13px monospace;outline:none}
+.cmd button{padding:0 14px;border-radius:10px;border:1px solid var(--red);background:transparent;color:var(--red);font-weight:700}
+</style></head><body>
+<canvas id="cv"></canvas>
+<div id="hud">FPS: <b id="fps">120</b> | PING: <b id="ping">--</b></div>
+
+<div id="login"><div class="card">
+<h1>CYBER VIP</h1><div class="sub">Enter Activation Key to unlock menu (UI demo)</div>
+<input type="text" id="key" placeholder="VIP-XXXX-XXXX-XXXX" autocomplete="off" autocapitalize="characters">
+<button class="btn red" id="getkey">GET KEY</button>
+<button class="btn" id="verify">VERIFY &amp; LOGIN</button>
+<div id="msg"></div>
+<div class="note">Simulation only. No real game is touched.</div>
+</div></div>
+
+<div id="bubble">M</div>
+
+<div id="menu">
+<div class="top"><b>CYBER MENU</b><small>DEMO v1.0</small></div>
+<div class="row">ESP Box + Player Info<label class="sw"><input type="checkbox" id="esp"><i></i></label></div>
+<div class="row">Aimbot FOV Circle<label class="sw"><input type="checkbox" id="fov"><i></i></label></div>
+<div class="sl">Aimbot Smoothness<span id="smv">50</span><input type="range" id="sm" min="1" max="100" value="50"></div>
+<div class="sl">FOV Size<span id="fvv">120</span><input type="range" id="fvs" min="40" max="260" value="120"></div>
+<div class="row">Pro Crosshair<label class="sw"><input type="checkbox" id="xh"><i></i></label></div>
+<div class="row">120 FPS + Anti-Lag HUD<label class="sw"><input type="checkbox" id="fpsb"><i></i></label></div>
+<div id="con"><span class="c">[console ready]</span></div>
+<button class="btn red" id="inject">INJECT PYTHON BYPASS</button>
+<button class="btn" id="close">HIDE MENU</button>
+<div class="note">All features are visual simulations for UI design.</div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const cv=$('cv'),cx=cv.getContext('2d');
+function rs(){const d=Math.min(devicePixelRatio||1,2);cv.width=innerWidth*d;cv.height=innerHeight*d;cx.setTransform(d,0,0,d,0,0)}
+rs();addEventListener('resize',rs);
+
+// Login
+$('getkey').onclick=()=>{$('key').value='VIP-DEMO-'+Math.random().toString(36).slice(2,6).toUpperCase()+'-2026';$('msg').style.color='#00e5ff';$('msg').textContent='Key filled. Tap VERIFY.'};
+$('verify').onclick=()=>{
+  const k=$('key').value.trim().toUpperCase(),m=$('msg');
+  if(k.startsWith('VIP-DEMO-')&&k.length>=12){m.style.color='#4dff9a';m.textContent='Verified. Welcome, VIP!';
+    setTimeout(()=>{$('login').style.display='none';$('bubble').style.display='flex';$('menu').style.display='block'},500)}
+  else{m.style.color='#ff1744';m.textContent='Invalid key. Tap GET KEY.'}
+};
+
+// Bubble drag + tap toggle
+const b=$('bubble');let drag=false,moved=false,ox=0,oy=0;
+b.addEventListener('pointerdown',e=>{drag=true;moved=false;const r=b.getBoundingClientRect();ox=e.clientX-r.left;oy=e.clientY-r.top;b.setPointerCapture(e.pointerId)});
+b.addEventListener('pointermove',e=>{if(!drag)return;moved=true;
+  const x=Math.max(0,Math.min(innerWidth-54,e.clientX-ox)),y=Math.max(0,Math.min(innerHeight-54,e.clientY-oy));
+  b.style.left=x+'px';b.style.top=y+'px'});
+b.addEventListener('pointerup',()=>{drag=false;if(!moved){const m=$('menu');m.style.display=m.style.display==='none'?'block':'none'}});
+$('close').onclick=()=>$('menu').style.display='none';
+
+// Sliders
+$('sm').oninput=e=>$('smv').textContent=e.target.value;
+$('fvs').oninput=e=>$('fvv').textContent=e.target.value;
+
+let rping='--';
+async function pingNow(){try{const t0=performance.now();await fetch(location.href,{method:'HEAD',cache:'no-store'});rping=Math.round(performance.now()-t0)+'ms'}catch(e){rping='N/A'}}
+setInterval(()=>{if($('fpsb').checked)pingNow()},2000);
+// HUD
+$('fpsb').onchange=e=>$('hud').style.display=e.target.checked?'block':'none';
+setInterval(()=>{if($('fpsb').checked){$('fps').textContent=rfps;$('ping').textContent=rping}},500);
+
+// Draw loop
+let fc=0,lt=performance.now(),rfps=0;
+function loop(t){
+  fc++;if(t-lt>=500){rfps=Math.round(fc*1000/(t-lt));fc=0;lt=t}
+  const W=innerWidth,H=innerHeight,mx=W/2,my=H/2;
+  cx.clearRect(0,0,W,H);
+  if($('esp').checked){
+    const ex=mx+Math.sin(t/900)*W*.25,ey=my+Math.cos(t/1300)*H*.08-30,w=60,h=130;
+    cx.strokeStyle='#ff1744';cx.lineWidth=2;
+    cx.strokeRect(ex-w/2,ey-h/2,w,h);
+    const hp=.5+.5*Math.sin(t/1500);
+    cx.shadowBlur=0;cx.fillStyle='#000';cx.fillRect(ex-w/2-9,ey-h/2,5,h);
+    cx.fillStyle=hp>.4?'#4dff9a':'#ff1744';cx.fillRect(ex-w/2-9,ey+h/2-h*hp,5,h*hp);
+    cx.fillStyle='#00e5ff';cx.font='12px monospace';
+    cx.fillText('Enemy_01 ['+Math.round(40+Math.sin(t/900)*10)+'m]',ex-w/2,ey-h/2-6);
+    cx.fillText('HP '+Math.round(hp*100),ex-w/2,ey+h/2+14);
+    cx.beginPath();cx.moveTo(mx,0);cx.lineTo(ex,ey-h/2);cx.globalAlpha=.4;cx.stroke();cx.globalAlpha=1;
+  }
+  if($('fov').checked){
+    cx.strokeStyle='#00e5ff';cx.lineWidth=3;
+    cx.beginPath();cx.arc(mx,my,+$('fvs').value,0,7);cx.stroke();cx.shadowBlur=0;
+  }
+  if($('xh').checked){
+    cx.strokeStyle='#ff1744';cx.lineWidth=2;
+    [[-14,0,-5,0],[5,0,14,0],[0,-14,0,-5],[0,5,0,14]].forEach(a=>{cx.beginPath();cx.moveTo(mx+a[0],my+a[1]);cx.lineTo(mx+a[2],my+a[3]);cx.stroke()});
+    cx.fillStyle='#00e5ff';cx.fillRect(mx-1,my-1,2,2);
+  }
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+// Fake console
+const con=$('con');let busy=false;
+function log(s,c){const d=document.createElement('div');if(c)d.className=c;d.textContent=s;con.appendChild(d);con.scrollTop=con.scrollHeight}
+$('inject').onclick=()=>{
+  if(busy)return;busy=true;
+  const L=[
+    ['$ python3 core_hook.py --arch arm64-v8a','c'],
+    ['[*] Loading pymem bindings... OK'],
+    ['[*] Loading frida bindings... OK'],
+    ['[*] Attaching to target process (simulated)...'],
+    ['[*] Scanning libil2cpp.so base offsets...'],
+    ['    base = 0x7a3c000000'],
+    ['    GameAssembly.Player::Update = 0x1F4A2C0'],
+    ['[*] Patching anti-cheat checksums...'],
+    ['[+] 3/3 patches applied'],
+    ['[+] SUCCESS! (DEMO - nothing was modified)','c']
+  ];
+  L.forEach((l,i)=>setTimeout(()=>{log(l[0],l[1]);if(i===L.length-1)busy=false},i*600));
+};
+
+</script>
+</body></html>
